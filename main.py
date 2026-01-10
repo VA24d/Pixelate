@@ -33,6 +33,7 @@ from games.basketball import Basketball
 from games.placeholder_games import SnakeGame, TetrisGame
 from games.pet_game import PetGame
 from games import sound
+from games.vacation import VacationGallery
 
 
 class LEDGameConsole:
@@ -89,6 +90,8 @@ class LEDGameConsole:
             self.current_screen = Basketball(self.grid)
         elif game_index == 4:
             self.current_screen = PetGame(self.grid)
+        elif game_index == 5:
+            self.current_screen = VacationGallery(self.grid)
         
         self.manager.set_state(GameState.PLAYING)
     

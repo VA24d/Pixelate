@@ -6,7 +6,7 @@ A Python application simulating a 19×19 RGB LED grid with a game console interf
 
 - **19×19 RGB LED Grid Simulator** with runtime-adjustable parameters
 - **Boot Screen** with animated LED effects
-- **Carousel Menu** with 5 game options and pixel-art logos
+- **Carousel Menu** with 6 game options and pixel-art logos
 - **Full Pong Game** with:
   - Player vs AI and 2-player modes
   - Multicolored ball trails
@@ -15,6 +15,7 @@ A Python application simulating a 19×19 RGB LED grid with a game console interf
   - Game over screen
 - **Basketball** (2v2)
 - **Pet Game** (Dog/Cat/Dino)
+- **Vacation Gallery** (Beach + Waterfall digital art)
 - **2 Placeholder Games** (Snake, Tetris)
 
 ## Installation
@@ -44,6 +45,7 @@ python main.py
 - `LEFT/RIGHT` - Navigate between games
 - `SPACE/ENTER` - Select game
 - `M` - Toggle smooth/instant carousel transitions
+- `O` - Toggle sound effects on/off
 
 ### Pong Game
 - **Mode Selection**: `LEFT/RIGHT` to choose 1P or 2P, `SPACE/ENTER` to start
@@ -56,6 +58,11 @@ python main.py
 - `A` - Feed
 - `S` - Play
 - `D` - Rest
+- `ESC` - Return to menu
+
+### Vacation Gallery
+- `LEFT/RIGHT` - Switch between scenes
+- `SPACE` - Toggle animation
 - `ESC` - Return to menu
 
 ## Features to Demonstrate
@@ -80,6 +87,8 @@ Pixelate/
 │   ├── pong.py            # Full Pong implementation
 │   ├── basketball.py      # Full Basketball implementation
 │   ├── pet_game.py        # Pet Game (Dog/Cat/Dino)
+│   ├── vacation.py        # Vacation Gallery (Beach + Waterfall)
+│   ├── sound.py           # Optional sound helper
 │   └── placeholder_games.py # Snake, Tetris, Space Invaders placeholders
 ```
 

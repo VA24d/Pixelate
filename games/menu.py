@@ -14,7 +14,7 @@ class CarouselMenu(Game):
         super().__init__(grid)
         self.game_manager = game_manager
         self.selected_index = 0
-        self.num_games = 5
+        self.num_games = 6
 
         # Each card is rendered on the 19x19 grid; we slide cards horizontally by this width.
         self.card_width = self.grid.grid_size
@@ -35,6 +35,7 @@ class CarouselMenu(Game):
             {"name": "TETRIS", "number": 3},
             {"name": "BBALL", "number": 4},
             {"name": "PETS", "number": 5},
+            {"name": "VACAY", "number": 6},
         ]
     
     def update(self, dt: float):
@@ -164,6 +165,8 @@ class CarouselMenu(Game):
             self._render_basketball_logo(x, y)
         elif game_index == 4:  # PETS
             self._render_pet_logo(x, y)
+        elif game_index == 5:  # VACAY
+            self._render_vacay_logo(x, y)
     
     def _render_pong_logo(self, x: int, y: int):
         """Pixel art logo for Pong - paddles and ball"""
@@ -283,6 +286,33 @@ class CarouselMenu(Game):
         ]
         for i, (px, py) in enumerate(pad):
             self.grid.set_pixel(x + px, y + py, pink if i % 2 == 0 else dark)
+
+    def _render_vacay_logo(self, x: int, y: int):
+        """Pixel art logo for Vacation - small sun + waves."""
+        sun = (255, 220, 80)
+        sky = (80, 160, 255)
+        wave = (120, 220, 255)
+        sand = (200, 160, 80)
+
+        # sky strip
+        for dx in range(10):
+            self.grid.set_pixel(x + dx, y + 0, sky)
+
+        # sun
+        self.grid.set_pixel(x + 7, y + 1, sun)
+        self.grid.set_pixel(x + 6, y + 1, sun)
+        self.grid.set_pixel(x + 7, y + 2, sun)
+
+        # waves
+        for dx in range(10):
+            if dx % 2 == 0:
+                self.grid.set_pixel(x + dx, y + 3, wave)
+        for dx in range(10):
+            self.grid.set_pixel(x + dx, y + 4, (0, 120, 200))
+
+        # sand
+        for dx in range(10):
+            self.grid.set_pixel(x + dx, y + 5, sand)
     
     def handle_input(self, keys, events):
         """Handle carousel navigation"""
