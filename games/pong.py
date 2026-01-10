@@ -15,7 +15,9 @@ class Pong(Game):
         
         # Game mode selection
         self.mode_selected = False
-        self.two_player_mode = False  # True for 2P, False for vs AI
+        # 0 = vs AI, 1 = 2P
+        self.mode_index = 0
+        self.two_player_mode = False  # Derived from mode_index when starting
         
         # Paddle settings
         self.paddle_height = 4
@@ -307,11 +309,11 @@ class Pong(Game):
         self.grid.render_text("MODE", 4, 2, (255, 255, 0), scale=1)
         
         # 1 Player option
-        color1 = (0, 255, 0) if not self.two_player_mode else (100, 100, 100)
+        color1 = (0, 255, 0) if self.mode_index == 0 else (100, 100, 100)
         self.grid.render_text("1P", 3, 8, color1, scale=1)
         
         # 2 Player option
-        color2 = (0, 255, 0) if self.two_player_mode else (100, 100, 100)
+        color2 = (0, 255, 0) if self.mode_index == 1 else (100, 100, 100)
         self.grid.render_text("2P", 11, 8, color2, scale=1)
         
         # Instructions
@@ -367,11 +369,12 @@ class Pong(Game):
                 # Mode selection
                 if not self.mode_selected:
                     if event.key == pygame.K_LEFT:
-                        self.two_player_mode = False
+                        self.mode_index = 0
                     elif event.key == pygame.K_RIGHT:
-                        self.two_player_mode = True
+                        self.mode_index = 1
                     elif event.key in [pygame.K_SPACE, pygame.K_RETURN]:
                         self.mode_selected = True
+                        self.two_player_mode = (self.mode_index == 1)
                         self.reset_ball()
                 
                 # Start game
