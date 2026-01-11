@@ -5,6 +5,7 @@ import pygame
 import math
 from games.base_game import Game, hsv_to_rgb
 from games.sound import play_beep
+from games.sprite_store import get_sprite_store, draw_sprite
 
 
 class CarouselMenu(Game):
@@ -29,6 +30,7 @@ class CarouselMenu(Game):
         self.title_pulse = 0.0
         
         # Game information
+        self._sprite_store = get_sprite_store()
         self.games = [
             {"name": "PONG", "number": 1},
             {"name": "SNAKE", "number": 2},
@@ -157,6 +159,16 @@ class CarouselMenu(Game):
     
     def _render_logo(self, game_index: int, x: int, y: int):
         """Render pixel art logo for each game"""
+        # Allow user overrides via sprite store.
+        try:
+            name = self.games[game_index]["name"]
+            sprite = self._sprite_store.get(f"menu_logo_{name}")
+            if sprite is not None:
+                draw_sprite(self.grid, sprite, x, y)
+                return
+        except Exception:
+            pass
+
         if game_index == 0:  # PONG
             self._render_pong_logo(x, y)
         elif game_index == 1:  # SNAKE

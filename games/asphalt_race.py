@@ -20,11 +20,14 @@ import pygame
 
 from games.base_game import Game
 from games.sound import play_beep
+from games.sprite_store import get_sprite_store, draw_sprite
 
 
 class AsphaltRace(Game):
     def __init__(self, grid):
         super().__init__(grid)
+
+        self._sprite_store = get_sprite_store()
 
         # Road geometry
         self.horizon_y = 4
@@ -205,10 +208,18 @@ class AsphaltRace(Game):
         self.grid.set_pixel(px, py + 1, p2)
         self.grid.set_pixel(px + 1, py + 1, p1)
 
-        # HUD
-        self.grid.render_text("R", 0, 0, (120, 200, 255), scale=1)
+        # HUD (user-editable sprites)
+        sprite = self._sprite_store.get("hud_race_dist")
+        if sprite is not None:
+            draw_sprite(self.grid, sprite, 0, 0)
+        else:
+            self.grid.render_text("R", 0, 0, (120, 200, 255), scale=1)
         self.grid.render_number(int(self.distance) % 100, 4, 0, (255, 255, 255), scale=1)
-        self.grid.render_text("S", 0, 6, (255, 220, 80), scale=1)
+        sprite = self._sprite_store.get("hud_race_score")
+        if sprite is not None:
+            draw_sprite(self.grid, sprite, 0, 6)
+        else:
+            self.grid.render_text("S", 0, 6, (255, 220, 80), scale=1)
         self.grid.render_number(self.score % 100, 4, 6, (255, 255, 255), scale=1)
 
         if self.crashed:

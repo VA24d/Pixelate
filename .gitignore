@@ -20,3 +20,6 @@ htmlcov/
 
 # OS / misc
 *.log
+
+# User-editable sprite presets
+data/sprites.json

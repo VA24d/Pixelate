@@ -37,6 +37,7 @@ from games import sound
 from games.vacation import VacationGallery
 from games.shadow_fight import ShadowFight
 from games.asphalt_race import AsphaltRace
+from games.overlay_editor import OverlayEditor
 
 
 class LEDGameConsole:
@@ -67,6 +68,14 @@ class LEDGameConsole:
         # Current state
         self.current_screen = None
         self.show_boot = True
+
+        # Bottom help overlay (pygame text). Hide by default during gameplay.
+        self.show_help_overlay = True
+
+        # Editor resume support
+        self._resume_state = None
+        self._resume_screen = None
+        self._resume_menu_index = 0
         
         # Start with boot screen
         self.start_boot_screen()
@@ -75,11 +84,21 @@ class LEDGameConsole:
         """Start the boot animation"""
         self.current_screen = BootScreen(self.grid)
         self.manager.set_state(GameState.BOOT)
+        self.show_help_overlay = True
     
-    def start_menu(self):
+    def start_menu(self, initial_index: int = 0):
         """Start the carousel menu"""
         self.current_screen = CarouselMenu(self.grid, self.manager)
+        # restore selection if requested
+        try:
+            self.current_screen.selected_index = int(initial_index)
+            self.current_screen.target_index = int(initial_index)
+            if not self.current_screen.smooth_transition:
+                self.current_screen.current_offset = float(initial_index)
+        except Exception:
+            pass
         self.manager.set_state(GameState.MENU)
+        self.show_help_overlay = True
     
     def start_game(self, game_index: int):
         """Start a specific game by index"""
@@ -101,6 +120,30 @@ class LEDGameConsole:
             self.current_screen = AsphaltRace(self.grid)
         
         self.manager.set_state(GameState.PLAYING)
+        self.show_help_overlay = False
+
+    def _start_editor(self, sprite_name: str, w: int, h: int):
+        # Remember where to go back
+        self._resume_state = self.manager.state
+        self._resume_screen = self.current_screen
+        if isinstance(self.current_screen, CarouselMenu):
+            self._resume_menu_index = int(self.current_screen.selected_index)
+        self.current_screen = OverlayEditor(self.grid, sprite_name=sprite_name, w=w, h=h)
+        self.manager.set_state(GameState.EDITOR)
+        # overlay is useful in editor
+        self.show_help_overlay = True
+
+    def _resume_from_editor(self):
+        # Default to menu if something is missing.
+        if self._resume_state == GameState.PLAYING and self._resume_screen is not None:
+            self.current_screen = self._resume_screen
+            self.manager.set_state(GameState.PLAYING)
+            self.show_help_overlay = False
+        else:
+            self.start_menu(self._resume_menu_index)
+
+        self._resume_state = None
+        self._resume_screen = None
     
     def handle_global_input(self, keys, events):
         """Handle global input (LED grid adjustments and quit)"""
@@ -112,6 +155,23 @@ class LEDGameConsole:
                 # Quit
                 if event.key == pygame.K_q:
                     return False
+
+                # Toggle bottom help overlay
+                if event.key == pygame.K_h:
+                    self.show_help_overlay = not self.show_help_overlay
+
+                # Edit mode: menu logos + a few HUD sprites
+                if event.key == pygame.K_e:
+                    if self.manager.state == GameState.MENU and isinstance(self.current_screen, CarouselMenu):
+                        name = self.current_screen.games[self.current_screen.selected_index]["name"]
+                        self._start_editor(sprite_name=f"menu_logo_{name}", w=11, h=8)
+                    elif self.manager.state == GameState.PLAYING and isinstance(self.current_screen, AsphaltRace):
+                        # Shift+E edits SCORE icon, E edits DIST icon
+                        mods = pygame.key.get_mods()
+                        if mods & pygame.KMOD_SHIFT:
+                            self._start_editor(sprite_name="hud_race_score", w=3, h=5)
+                        else:
+                            self._start_editor(sprite_name="hud_race_dist", w=3, h=5)
                 
                 # LED adjustments
                 if event.key == pygame.K_EQUALS or event.key == pygame.K_PLUS:
@@ -173,6 +233,8 @@ class LEDGameConsole:
                     elif self.manager.state == GameState.MENU:
                         # Start selected game
                         self.start_game(self.manager.selected_game_index)
+                    elif self.manager.state == GameState.EDITOR:
+                        self._resume_from_editor()
                     elif self.manager.state == GameState.PLAYING:
                         # Return to menu
                         self.start_menu()
@@ -189,7 +251,8 @@ class LEDGameConsole:
             self.grid.render(self.screen)
             
             # Display help text
-            self._render_help_text()
+            if self.show_help_overlay:
+                self._render_help_text()
             
             # Update display
             pygame.display.flip()
@@ -202,11 +265,11 @@ class LEDGameConsole:
         font = pygame.font.Font(None, 20)
         
         help_texts = [
-            "Controls: +/- Size | [/] Spacing | ,/. Gap | T Style | L Layout | O Sound | Q Quit",
+            "Controls: +/- Size | [/] Spacing | ,/. Gap | T Style | L Layout | O Sound | H Help | Q Quit",
         ]
         
         if self.manager.state == GameState.MENU:
-            help_texts.append("Menu: LEFT/RIGHT Navigate | SPACE/ENTER Select | M Toggle Transition")
+            help_texts.append("Menu: LEFT/RIGHT Navigate | SPACE/ENTER Select | M Toggle Transition | E Edit Logo")
         elif self.manager.state == GameState.PLAYING:
             # Contextual hints based on current game
             if isinstance(self.current_screen, Pong):
@@ -222,7 +285,7 @@ class LEDGameConsole:
             elif isinstance(self.current_screen, ShadowFight):
                 help_texts.append("Fight: A/D Move | W Jump | J Punch | ESC Menu")
             elif isinstance(self.current_screen, AsphaltRace):
-                help_texts.append("Race: LR Steer | UP Gas | DOWN Brake | ESC Menu")
+                help_texts.append("Race: LR Steer | UP Gas | DOWN Brake | E Edit HUD | ESC Menu")
             else:
                 help_texts.append("Game: ESC Menu")
         

@@ -42,6 +42,7 @@ class GameState:
     BOOT = "boot"
     MENU = "menu"
     PLAYING = "playing"
+    EDITOR = "editor"
 
 
 class GameManager:
