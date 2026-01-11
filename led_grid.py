@@ -62,7 +62,27 @@ class LEDGrid:
     def set_pixel(self, x: int, y: int, color: Tuple[int, int, int]):
         """Set a single LED color (x, y coordinates, RGB color)"""
         if 0 <= x < self.grid_size and 0 <= y < self.grid_size:
-            self.grid[y][x] = color
+            self.grid[y][x] = self._coerce_color(color)
+
+    def _coerce_color(self, color) -> Tuple[int, int, int]:
+        """Coerce arbitrary color-like input into an (r,g,b) tuple of ints 0..255.
+
+        This is defensive: game logic should *ideally* only write integer RGB tuples,
+        but we clamp here to prevent hard crashes during pygame drawing.
+        """
+        try:
+            r, g, b = color  # type: ignore[misc]
+        except Exception:
+            return (0, 0, 0)
+
+        def _clamp(v) -> int:
+            try:
+                vi = int(round(float(v)))
+            except Exception:
+                return 0
+            return 0 if vi < 0 else 255 if vi > 255 else vi
+
+        return (_clamp(r), _clamp(g), _clamp(b))
     
     def get_pixel(self, x: int, y: int) -> Tuple[int, int, int]:
         """Get a single LED color"""
@@ -107,7 +127,7 @@ class LEDGrid:
         """Render the LED grid to a pygame surface"""
         for y in range(self.grid_size):
             for x in range(self.grid_size):
-                color = self.grid[y][x]
+                color = self._coerce_color(self.grid[y][x])
                 
                 # Calculate LED position
                 led_x = self.offset_x + x * (self.led_size + self.led_spacing)
@@ -120,6 +140,7 @@ class LEDGrid:
     
     def _render_circular_led(self, surface: pygame.Surface, x: int, y: int, color: Tuple[int, int, int]):
         """Render a single circular LED with glow effect"""
+        color = self._coerce_color(color)
         center_x = x + self.led_size // 2
         center_y = y + self.led_size // 2
         radius = (self.led_size - self.led_gap * 2) // 2
@@ -151,6 +172,7 @@ class LEDGrid:
     
     def _render_square_led(self, surface: pygame.Surface, x: int, y: int, color: Tuple[int, int, int]):
         """Render a single square LED (pixel style)"""
+        color = self._coerce_color(color)
         size = self.led_size - self.led_gap * 2
         
         # Draw dim background
