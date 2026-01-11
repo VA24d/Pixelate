@@ -7,7 +7,8 @@ Controls:
 
 Gameplay:
   - Eat food to grow
-  - Die if you hit walls or yourself
+  - Wrap at edges (left-right, top-bottom)
+  - Die if you hit yourself
   - Endless score-until-death
 """
 
@@ -79,12 +80,8 @@ class Snake(Game):
 
         hx, hy = self.snake[-1]
         dx, dy = self.direction
-        nx, ny = hx + dx, hy + dy
-
-        # Wall collision
-        if not (0 <= nx < self.grid.grid_size and 0 <= ny < self.grid.grid_size):
-            self._die()
-            return
+        nx = (hx + dx) % self.grid.grid_size
+        ny = (hy + dy) % self.grid.grid_size
 
         new_head = (nx, ny)
 

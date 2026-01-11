@@ -59,7 +59,7 @@ class TestSnake(unittest.TestCase):
             game._spawn_food()
             self.assertNotIn(game.food, game.snake)
 
-    def test_wall_collision_sets_game_over(self):
+    def test_wraps_at_edges_instead_of_game_over(self):
         g = _StubGrid()
         game = Snake(g)
 
@@ -70,7 +70,10 @@ class TestSnake(unittest.TestCase):
         game.next_direction = (1, 0)
 
         game._step()
-        self.assertTrue(game.game_over)
+
+        # Head wraps from x=18 to x=0.
+        self.assertFalse(game.game_over)
+        self.assertEqual(game.snake[-1], (0, 10))
 
 
 if __name__ == "__main__":
