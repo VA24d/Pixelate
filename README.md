@@ -1,25 +1,21 @@
-# LED Grid Game Console Simulator
+# Pixelate (19×19 LED Grid Game Console)
 
-A Python application simulating a 19×19 RGB LED grid with a game console interface featuring a boot screen, carousel menu, and games.
+Pixelate is a **Python + pygame** app that simulates a **19×19 RGB LED matrix** with a retro game-console UI.
 
-## Competition Features
+It includes a boot screen, a carousel menu, and a collection of small games designed to look good on an LED grid.
 
-- **19×19 RGB LED Grid Simulator** with runtime-adjustable parameters
-- **Boot Screen** with animated LED effects
-- **Carousel Menu** with 8 game options and pixel-art logos
-- **Full Pong Game** with:
-  - Player vs AI and 2-player modes
-  - Multicolored ball trails
-  - Scoring animations
-  - Sound effects
-  - Game over screen
-- **Basketball** (2v2)
-- **Pet Game** (Dog/Cat/Dino)
-- **Vacation Gallery** (Beach + Waterfall digital art)
-- **Snake** (full game)
-- **Flappy Bird** (full game)
-- **Shadow Fight (Stick)** (simplified 1v1)
-- **Asphalt Racing** (pseudo-3D endless racer)
+## Games
+
+Menu has 8 items:
+
+1. Pong
+2. Snake
+3. Flappy
+4. Basketball (2v2)
+5. Pet Game
+6. Vacation Gallery
+7. Shadow Fight (Stick)
+8. Asphalt Race (pseudo-3D)
 
 ## Installation
 
@@ -33,6 +29,30 @@ pip install -r requirements.txt
 python main.py
 ```
 
+## Customization (Pixel Editors)
+
+Pixelate supports **live pixel editing** for menu logos, menu card pixels, and font glyphs.
+Edits are stored locally and are **not committed**.
+
+### 1) Edit a menu card (logo + text + any pixels you see)
+- In the Menu, select a game and press **`E`**.
+- Click a **palette color** (top row) to choose a color.
+- **Left click** paints pixels, **right click** erases.
+- Press **`S`** to save.
+- Optional: press **`B`** to “bake” the current rendered card into the overlay, then tweak it.
+
+### 2) Edit only the menu logo
+- In the Menu, select a game and press **`Shift + E`**.
+
+### 3) Edit the font (fix messy text)
+- In the Menu, press **`F`**.
+- Start in an atlas view; click a glyph to edit.
+- In edit view you can toggle pixels and save overrides.
+
+Files:
+- `data/sprites.json` (menu logos + menu card overlays + HUD icons)
+- `data/font_overrides.json` (3×5 glyph overrides)
+
 ## Controls
 
 ### Global Controls (anytime)
@@ -42,18 +62,23 @@ python main.py
 - `T` - Toggle circular/square LED style
 - `L` - Toggle portrait/landscape window layout
 - `O` - Toggle sound effects on/off
+- `H` - Toggle help overlay
 - `Q` - Quit application
 
 ### Boot Screen & Menu
 - `LEFT/RIGHT` - Navigate between games
 - `SPACE/ENTER` - Select game
 - `M` - Toggle smooth/instant carousel transitions
-- `O` - Toggle sound effects on/off
+- `E` - Edit selected game card pixels
+- `Shift+E` - Edit selected game logo
+- `F` - Edit font glyphs
 
 ### Snake
 - Arrow keys - Move
 - `SPACE` - Restart after game over
 - `ESC` - Return to menu
+
+Note: Snake wraps at edges (left/right, top/bottom).
 
 ### Flappy Bird
 - `SPACE` - Flap
@@ -64,6 +89,7 @@ python main.py
 - `A/D` - Move
 - `W` - Jump
 - `J` - Punch
+- `S` - Crouch/Dodge
 - `SPACE` - Restart after game over
 - `ESC` - Return to menu
 
@@ -111,6 +137,7 @@ Pixelate/
 │   ├── base_game.py       # Base game class and utilities
 │   ├── boot_screen.py     # Boot animation
 │   ├── menu.py            # Carousel menu
+│   ├── menu_card_editor.py# Edit full menu cards (pixels + text)
 │   ├── pong.py            # Full Pong implementation
 │   ├── basketball.py      # Full Basketball implementation
 │   ├── pet_game.py        # Pet Game (Dog/Cat/Dino)
@@ -120,15 +147,15 @@ Pixelate/
 │   ├── flappy.py          # Flappy Bird
 │   ├── shadow_fight.py    # Stick figure fighter
 │   ├── asphalt_race.py    # Pseudo-3D racing
+│   ├── font_editor.py      # Edit 3x5 font glyphs
+│   ├── font_store.py       # Persist font overrides
 │   └── ...
+├── tests/                  # unittest suite
+└── data/                   # local user presets (gitignored)
 ```
 
-## Tips for Competition
+## Running Tests
 
-- Start with circular LEDs for realistic effect, toggle to square for retro pixel look
-- Adjust LED size/spacing to find the best visual balance for your display
-- Use smooth carousel transitions for presentation, instant for quick navigation
-- Demonstrate both 1P and 2P Pong modes to show versatility
-- Let the boot screen play fully on first launch for impact
-
-Good luck with your competition! 🎮✨
+```bash
+python -m unittest discover -q
+```

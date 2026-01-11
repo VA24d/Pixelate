@@ -26,3 +26,6 @@ data/sprites.json
 
 # User-editable font glyph overrides
 data/font_overrides.json
+
+# Local dev notes (not part of the app)
+memory-bank/
