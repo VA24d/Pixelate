@@ -51,11 +51,14 @@ class OverlayEditor(Game):
         ]
         self.p_index = 0
 
+        # Reserve top rows for UI so palette never conflicts with sprite area.
+        self._ui_rows = 2
+
     def _grid_to_sprite_xy(self, gx: int, gy: int) -> tuple[int, int] | None:
         """Map grid coords to sprite coords based on current editor layout."""
-        # Sprite is drawn at (1,1)
+        # Sprite is drawn at (1, ui_rows + 1)
         sx = gx - 1
-        sy = gy - 1
+        sy = gy - (self._ui_rows + 1)
         if 0 <= sx < self.w and 0 <= sy < self.h:
             return (sx, sy)
         return None
@@ -81,21 +84,30 @@ class OverlayEditor(Game):
     def render(self):
         self.grid.clear((0, 0, 0))
 
+        # Palette row on top (clickable)
+        for i, c in enumerate(self.palette):
+            if i >= self.grid.grid_size:
+                break
+            self.grid.set_pixel(i, 0, c)
+            self.grid.set_pixel(i, 1, (255, 255, 0) if i == self.p_index else (20, 20, 20))
+
+        frame_top = self._ui_rows
+
         # Frame
         for x in range(self.w + 2):
-            self.grid.set_pixel(x, 0, (40, 40, 40))
-            self.grid.set_pixel(x, self.h + 1, (40, 40, 40))
+            self.grid.set_pixel(x, frame_top, (40, 40, 40))
+            self.grid.set_pixel(x, frame_top + self.h + 1, (40, 40, 40))
         for y in range(self.h + 2):
-            self.grid.set_pixel(0, y, (40, 40, 40))
-            self.grid.set_pixel(self.w + 1, y, (40, 40, 40))
+            self.grid.set_pixel(0, frame_top + y, (40, 40, 40))
+            self.grid.set_pixel(self.w + 1, frame_top + y, (40, 40, 40))
 
         # Sprite contents
-        draw_sprite(self.grid, self.sprite, 1, 1)
+        draw_sprite(self.grid, self.sprite, 1, frame_top + 1)
 
         # Cursor
         cur_color = (255, 255, 0)
         gx = 1 + self.cx
-        gy = 1 + self.cy
+        gy = frame_top + 1 + self.cy
         self.grid.set_pixel(gx, gy, cur_color)
 
         # HUD / instructions (minimal on-grid)
@@ -114,6 +126,12 @@ class OverlayEditor(Game):
                 if pos is not None:
                     grid_xy = self._screen_to_grid(pos[0], pos[1])
                     if grid_xy is not None:
+                        # Palette clicks
+                        if grid_xy[1] == 0 and 0 <= grid_xy[0] < len(self.palette):
+                            self.p_index = grid_xy[0]
+                            play_beep(520, 20)
+                            continue
+
                         sprite_xy = self._grid_to_sprite_xy(grid_xy[0], grid_xy[1])
                         if sprite_xy is not None:
                             self.cx, self.cy = sprite_xy

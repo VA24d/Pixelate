@@ -40,6 +40,7 @@ from games.asphalt_race import AsphaltRace
 from games.overlay_editor import OverlayEditor
 from games.font_editor import FontEditor
 from games.font_store import get_font_store
+from games.menu_card_editor import MenuCardEditor
 
 
 class LEDGameConsole:
@@ -141,6 +142,15 @@ class LEDGameConsole:
         # overlay is useful in editor
         self.show_help_overlay = True
 
+    def _start_menu_card_editor(self, game_index: int):
+        self._resume_state = self.manager.state
+        self._resume_screen = self.current_screen
+        if isinstance(self.current_screen, CarouselMenu):
+            self._resume_menu_index = int(self.current_screen.selected_index)
+        self.current_screen = MenuCardEditor(self.grid, game_index=int(game_index))
+        self.manager.set_state(GameState.EDITOR)
+        self.show_help_overlay = True
+
     def _resume_from_editor(self):
         # Default to menu if something is missing.
         if self._resume_state == GameState.PLAYING and self._resume_screen is not None:
@@ -198,8 +208,12 @@ class LEDGameConsole:
                 # Edit mode: menu logos + a few HUD sprites
                 if event.key == pygame.K_e:
                     if self.manager.state == GameState.MENU and isinstance(self.current_screen, CarouselMenu):
-                        name = self.current_screen.games[self.current_screen.selected_index]["name"]
-                        self._start_editor(sprite_name=f"menu_logo_{name}", w=11, h=8)
+                        mods = pygame.key.get_mods()
+                        if mods & pygame.KMOD_SHIFT:
+                            name = self.current_screen.games[self.current_screen.selected_index]["name"]
+                            self._start_editor(sprite_name=f"menu_logo_{name}", w=11, h=8)
+                        else:
+                            self._start_menu_card_editor(game_index=self.current_screen.selected_index)
                     elif self.manager.state == GameState.PLAYING and isinstance(self.current_screen, AsphaltRace):
                         # Shift+E edits SCORE icon, E edits DIST icon
                         mods = pygame.key.get_mods()
@@ -317,7 +331,7 @@ class LEDGameConsole:
         
         if self.manager.state == GameState.MENU:
             help_texts.append(
-                "Menu: LEFT/RIGHT Navigate | SPACE/ENTER Select | M Toggle Transition | E Edit Logo | F Edit Font"
+                "Menu: LEFT/RIGHT Navigate | SPACE/ENTER Select | M Toggle Transition | E Edit Card | Shift+E Logo | F Edit Font"
             )
         elif self.manager.state == GameState.PLAYING:
             # Contextual hints based on current game

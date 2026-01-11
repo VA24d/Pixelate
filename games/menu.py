@@ -122,6 +122,15 @@ class CarouselMenu(Game):
         # When offset == game_index => x_shift == 0 (card centered)
         x_shift = int((game_index - offset) * self.card_width)
         
+        # Allow a per-game user override for the full card pixels.
+        # This is an overlay (not a full replacement): it draws on top of
+        # the programmatic render.
+        overlay = None
+        try:
+            overlay = self._sprite_store.get(f"menu_card_{game['name']}")
+        except Exception:
+            overlay = None
+
         # Card border (helps readability during slide)
         border_color = (30, 30, 40)
         for bx in range(0, self.grid.grid_size):
@@ -145,6 +154,10 @@ class CarouselMenu(Game):
         text_width = len(name) * 4  # 3 chars + 1 spacing per letter
         text_x = x_shift + (self.grid.grid_size - text_width) // 2
         self.grid.render_text(name, text_x, 15, (0, 255, 255), scale=1)
+
+        # Overlay after base render so it can replace pixels.
+        if overlay is not None:
+            draw_sprite(self.grid, overlay, x_shift + 0, 2)
     
     def _render_game_preview(self, game_index: int, position: int):
         """Render a small preview of adjacent games (dimmed)"""
