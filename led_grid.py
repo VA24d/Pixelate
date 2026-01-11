@@ -4,7 +4,7 @@ Supports runtime adjustment of LED size, spacing, and visual style
 """
 import pygame
 import math
-from typing import Tuple, List
+from typing import Dict, Tuple, List
 
 
 class LEDGrid:
@@ -185,7 +185,7 @@ class LEDGrid:
     
     def render_text(self, text: str, x: int, y: int, color: Tuple[int, int, int], scale: int = 1):
         """Render text on the LED grid using a simple 3x5 font"""
-        font_3x5 = {
+        font_3x5: Dict[str, List[List[int]]] = {
             '0': [[1,1,1],[1,0,1],[1,0,1],[1,0,1],[1,1,1]],
             '1': [[0,1,0],[1,1,0],[0,1,0],[0,1,0],[1,1,1]],
             '2': [[1,1,1],[0,0,1],[1,1,1],[1,0,0],[1,1,1]],
@@ -225,6 +225,13 @@ class LEDGrid:
             ' ': [[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0]],
             '-': [[0,0,0],[0,0,0],[1,1,1],[0,0,0],[0,0,0]],
         }
+
+        # Apply optional user overrides loaded at runtime.
+        # Overrides should follow the same 3x5 matrix format.
+        try:
+            font_3x5.update(self._font_overrides)
+        except Exception:
+            pass
         
         cursor_x = x
         for char in text.upper():
@@ -237,6 +244,13 @@ class LEDGrid:
                                 for sx in range(scale):
                                     self.set_pixel(cursor_x + dx * scale + sx, y + dy * scale + sy, color)
                 cursor_x += (3 * scale) + scale  # Character width + spacing
+
+    def set_font_overrides(self, overrides: Dict[str, List[List[int]]] | None) -> None:
+        """Set per-character 3x5 font overrides used by render_text()."""
+        self._font_overrides = overrides or {}
+
+    def get_font_overrides(self) -> Dict[str, List[List[int]]]:
+        return getattr(self, "_font_overrides", {})
     
     def render_number(self, number: int, x: int, y: int, color: Tuple[int, int, int], scale: int = 1):
         """Render a number on the LED grid"""

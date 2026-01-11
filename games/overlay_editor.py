@@ -10,6 +10,10 @@ Controls:
   - C: cycle palette
   - S: save
   - ESC: exit editor
+
+Mouse:
+  - Left click paints at the clicked LED
+  - Right click erases at the clicked LED
 """
 
 from __future__ import annotations
@@ -47,6 +51,30 @@ class OverlayEditor(Game):
         ]
         self.p_index = 0
 
+    def _grid_to_sprite_xy(self, gx: int, gy: int) -> tuple[int, int] | None:
+        """Map grid coords to sprite coords based on current editor layout."""
+        # Sprite is drawn at (1,1)
+        sx = gx - 1
+        sy = gy - 1
+        if 0 <= sx < self.w and 0 <= sy < self.h:
+            return (sx, sy)
+        return None
+
+    def _screen_to_grid(self, sx: int, sy: int) -> tuple[int, int] | None:
+        """Convert pygame screen pixel coords into LED grid coords.
+
+        This uses the LEDGrid layout parameters, so clicks hit the actual LED cell.
+        """
+        try:
+            lx = int((sx - self.grid.offset_x) / (self.grid.led_size + self.grid.led_spacing))
+            ly = int((sy - self.grid.offset_y) / (self.grid.led_size + self.grid.led_spacing))
+        except Exception:
+            return None
+
+        if 0 <= lx < self.grid.grid_size and 0 <= ly < self.grid.grid_size:
+            return (lx, ly)
+        return None
+
     def update(self, dt: float):
         pass
 
@@ -81,6 +109,22 @@ class OverlayEditor(Game):
 
     def handle_input(self, keys, events):
         for event in events:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos = getattr(event, "pos", None)
+                if pos is not None:
+                    grid_xy = self._screen_to_grid(pos[0], pos[1])
+                    if grid_xy is not None:
+                        sprite_xy = self._grid_to_sprite_xy(grid_xy[0], grid_xy[1])
+                        if sprite_xy is not None:
+                            self.cx, self.cy = sprite_xy
+                            if event.button == 1:
+                                self.sprite.set(self.cx, self.cy, self.palette[self.p_index])
+                                play_beep(660, 15)
+                            elif event.button == 3:
+                                self.sprite.set(self.cx, self.cy, None)
+                                play_beep(320, 15)
+                continue
+
             if event.type != pygame.KEYDOWN:
                 continue
 
