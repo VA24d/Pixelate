@@ -14,7 +14,7 @@ Create a Python application simulating a 19×19 RGB LED grid with a game console
    - Auto-transitions to game menu
 
 3. **Carousel Menu**
-   - 4 game options with pixel-art logos and numbers
+   - 8 game options with pixel-art logos and numbers
    - Left/right navigation
    - Space/enter to select
    - Support both smooth and instant transitions
@@ -27,6 +27,7 @@ Create a Python application simulating a 19×19 RGB LED grid with a game console
    - **Shadow Fight (Stick)** (simplified): 1v1 stick fighter
    - **Pet Game**: Dog/Cat/Dino tamagotchi-style
    - **Vacation Gallery**: Beach + waterfall digital art viewer
+   - **Asphalt Racing**: Pseudo-3D endless racer
 
 ## Success Criteria
 - Clean, professional LED grid visualization

@@ -14,7 +14,8 @@ main.py (LEDGameConsole)
     ├── flappy.py (Flappy) - Full game implementation
     ├── vacation.py (VacationGallery) - Digital art gallery
     ├── pet_game.py (PetGame) - Pet sim
-    └── shadow_fight.py (ShadowFight) - Stick fighter
+    ├── shadow_fight.py (ShadowFight) - Stick fighter
+    └── asphalt_race.py (AsphaltRace) - Pseudo-3D racer
 ```
 
 ## Key Design Patterns

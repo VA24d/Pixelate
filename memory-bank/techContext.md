@@ -33,7 +33,8 @@ Pixelate/
     ├── flappy.py
     ├── pet_game.py
     ├── vacation.py
-    └── shadow_fight.py
+    ├── shadow_fight.py
+    └── asphalt_race.py
 ```
 
 ### Running the Application
