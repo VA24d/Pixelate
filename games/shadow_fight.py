@@ -116,7 +116,8 @@ class ShadowFight(Game):
 
         # Simple dodge: sometimes crouch when close and player is punching
         if (
-            self.ai_crouch_timer <= 0
+            dt > 0
+            and self.ai_crouch_timer <= 0
             and self.p1_attack_timer > 0
             and abs(self.ai_x - self.p1_x) <= 2.2
             and random.random() < 0.25

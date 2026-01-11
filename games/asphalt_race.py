@@ -39,9 +39,15 @@ class AsphaltRace(Game):
         self.player_lane_w = 3.0
 
         # Speed
-        self.speed = 6.0
+        self.speed = 7.5
         self.min_speed = 3.0
-        self.max_speed = 11.0
+        self.max_speed = 13.0
+
+        # Controls tuning
+        self.steer_speed = 9.0  # pixels/sec (higher = easier dodging)
+        self.accel_per_s = 8.0
+
+        self._last_dt = 1 / 60
 
         # World scroll and distance
         self.scroll = 0.0
@@ -58,7 +64,7 @@ class AsphaltRace(Game):
     def _reset(self) -> None:
         self.player_x = 0.0
         self.curve = 0.0
-        self.speed = 6.0
+        self.speed = 7.5
         self.scroll = 0.0
         self.distance = 0.0
         self.score = 0
@@ -131,6 +137,13 @@ class AsphaltRace(Game):
         return False
 
     def update(self, dt: float):
+        # Remember dt for input integration (handle_input doesn't receive dt).
+        try:
+            self._last_dt = float(dt)
+        except Exception:
+            self._last_dt = 1 / 60
+        self._last_dt = max(1 / 240, min(1 / 15, self._last_dt))
+
         if self.crashed:
             return
 
@@ -242,6 +255,10 @@ class AsphaltRace(Game):
 
         # Continuous steering / speed
         if not self.crashed:
+            # dt is not passed to handle_input in this architecture, so we use
+            # dt from update().
+            dt = getattr(self, "_last_dt", 1 / 60)
+
             steer = 0.0
             if keys[pygame.K_LEFT]:
                 steer -= 1.0
@@ -255,8 +272,8 @@ class AsphaltRace(Game):
                 accel -= 1.0
 
             # Apply
-            self.player_x += steer * 5.0 * (1 / 60)
-            self.speed += accel * 6.0 * (1 / 60)
+            self.player_x += steer * self.steer_speed * dt
+            self.speed += accel * self.accel_per_s * dt
             self.speed = max(self.min_speed, min(self.max_speed, self.speed))
 
             # Keep player within road bounds (bottom row)
