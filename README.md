@@ -4,6 +4,9 @@ Pixelate is a **Python + pygame** app that simulates a **19×19 RGB LED matrix**
 
 It includes a boot screen, a carousel menu, and a collection of small games designed to look good on an LED grid.
 
+
+- Designed for the ERC Pixelate Event (Sadly didn't support dynamic content)
+
 ## Games
 
 Menu has 8 items:
