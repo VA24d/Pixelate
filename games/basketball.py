@@ -5,6 +5,8 @@ import pygame
 import random
 import math
 from games.base_game import Game, hsv_to_rgb
+from games.sound import play_beep
+from games.sprite_store import get_sprite_store, draw_sprite
 
 
 class Basketball(Game):
@@ -12,6 +14,8 @@ class Basketball(Game):
     
     def __init__(self, grid):
         super().__init__(grid)
+
+        self._sprite_store = get_sprite_store()
         
         # Court dimensions
         self.court_width = self.grid.grid_size
@@ -42,8 +46,18 @@ class Basketball(Game):
         self.ball_arc_progress = 0
         self.ball_arc_start = (0, 0)
         self.ball_arc_end = (0, 0)
-        # Slightly slower arcs feels more realistic on a 19x19 grid.
-        self.ball_arc_duration = 0.7
+        # Arc timings
+        self.shot_arc_duration = 0.9
+        self.pass_arc_duration = 0.55
+        self.ball_arc_duration = self.shot_arc_duration
+
+        # Dribble
+        self._t = 0.0
+        self._last_positions = {0: (3.0, 6.0), 1: (3.0, 12.0), 2: (15.0, 6.0), 3: (15.0, 12.0)}
+        self._moving = {0: False, 1: False, 2: False, 3: False}
+
+        # Aiming (controlled player only)
+        self.aim_offset_y = 0  # -1,0,1 => top/center/bottom hoop segment
         
         # Hoops
         self.left_hoop_x = 1
@@ -70,12 +84,26 @@ class Basketball(Game):
         self.ai_update_timer = 0
         # More frequent but smaller AI steps => smoother, less "teleporty".
         self.ai_update_interval = 0.06
+
+        # Movement speeds (units per second, scaled by dt)
+        self.player_move_speed = 4.0
+        self.ai_move_speed = 3.4
         
         # Start with team 1 having the ball
         self.ball_holder = 0
         
     def update(self, dt: float):
         """Update game state"""
+        # Store dt for movement code in handle_input (called after update in main loop).
+        self._dt_last = dt
+        self._t += dt
+        # Track per-player movement (for steals + dribble feel)
+        for idx, p in self.get_all_players():
+            last = self._last_positions.get(idx, (p["x"], p["y"]))
+            dx = p["x"] - last[0]
+            dy = p["y"] - last[1]
+            self._moving[idx] = (dx * dx + dy * dy) > (0.08 * 0.08)
+            self._last_positions[idx] = (p["x"], p["y"])
         if self.score_animation_timer > 0:
             self.score_animation_timer -= dt
             if self.score_animation_timer <= 0:
@@ -108,13 +136,25 @@ class Basketball(Game):
         self.ai_update_timer += dt
         if self.ai_update_timer >= self.ai_update_interval:
             self.ai_update_timer = 0
-            self.update_ai()
+            self.update_ai(self.ai_update_interval)
         
-        # Update ball position if held
+        # Update ball position if held (with dribble animation)
         if self.ball_holder is not None and not self.ball_in_air:
             player = self.get_player(self.ball_holder)
             self.ball_x = player["x"]
             self.ball_y = player["y"]
+
+            # Simple dribble bounce: alternate ball between feet and slightly forward.
+            if self.game_started and not self.game_over:
+                phase = (self._t * 6.0) % 1.0
+                bx = int(player["x"])
+                by = int(player["y"])
+                if phase < 0.5:
+                    by = min(self.court_height - 1, by + 1)
+                else:
+                    bx = min(self.court_width - 1, bx + (1 if player["team"] == 1 else -1))
+                self.ball_x = float(bx)
+                self.ball_y = float(by)
     
     def reset_positions(self):
         """Reset player and ball positions"""
@@ -130,6 +170,9 @@ class Basketball(Game):
         
         self.ball_x = self.grid.grid_size / 2
         self.ball_y = self.grid.grid_size / 2
+
+        # reset aim
+        self.aim_offset_y = 0
         
         # Alternate possession
         if self.scoring_team == 1:
@@ -150,7 +193,7 @@ class Basketball(Game):
         """Get all players with their indices"""
         return [(0, self.team1[0]), (1, self.team1[1]), (2, self.team2[0]), (3, self.team2[1])]
     
-    def update_ai(self):
+    def update_ai(self, dt: float):
         """Update AI for non-controlled players"""
         for idx, player in self.get_all_players():
             if idx == self.controlled_player:
@@ -159,18 +202,18 @@ class Basketball(Game):
             # AI behavior depends on ball possession
             if self.ball_holder == idx:
                 # AI has the ball - decide to shoot or pass
-                self.ai_with_ball(idx, player)
+                self.ai_with_ball(idx, player, dt)
             elif self.ball_holder is None:
                 # No one has ball - chase it
-                self.ai_chase_ball(idx, player)
+                self.ai_chase_ball(idx, player, dt)
             elif self.get_player(self.ball_holder)["team"] == player["team"]:
                 # Teammate has ball - position for pass
-                self.ai_position_offense(idx, player)
+                self.ai_position_offense(idx, player, dt)
             else:
                 # Opponent has ball - defend/block
-                self.ai_defend(idx, player)
+                self.ai_defend(idx, player, dt)
     
-    def ai_with_ball(self, idx, player):
+    def ai_with_ball(self, idx, player, dt: float):
         """AI behavior when holding the ball"""
         # Determine target hoop
         target_hoop_x = self.right_hoop_x if player["team"] == 1 else self.left_hoop_x
@@ -196,7 +239,7 @@ class Basketball(Game):
             self.ai_pass(idx, player)
         else:
             # Move towards hoop
-            self.ai_move_towards(player, target_hoop_x, target_hoop_y)
+            self.ai_move_towards(player, target_hoop_x, target_hoop_y, dt, speed_per_s=self.ai_move_speed)
     
     def ai_pass(self, idx, player):
         """AI passes to teammate"""
@@ -206,44 +249,50 @@ class Basketball(Game):
                 self.pass_ball(idx, tidx)
                 break
     
-    def ai_chase_ball(self, idx, player):
+    def ai_chase_ball(self, idx, player, dt: float):
         """AI chases loose ball"""
-        self.ai_move_towards(player, self.ball_x, self.ball_y)
+        self.ai_move_towards(player, self.ball_x, self.ball_y, dt, speed_per_s=self.ai_move_speed * 1.05)
         
         # Pick up ball if close
         dist = math.sqrt((player["x"] - self.ball_x)**2 + (player["y"] - self.ball_y)**2)
         if dist < 1.5:
             self.ball_holder = idx
     
-    def ai_position_offense(self, idx, player):
+    def ai_position_offense(self, idx, player, dt: float):
         """AI positions for receiving pass"""
         # Move towards opponent's hoop but stay spread out
         target_x = 12 if player["team"] == 1 else 6
         target_y = 9 if idx % 2 == 0 else 14
-        self.ai_move_towards(player, target_x, target_y, speed=0.45)
+        self.ai_move_towards(player, target_x, target_y, dt, speed_per_s=self.ai_move_speed * 0.85)
     
-    def ai_defend(self, idx, player):
+    def ai_defend(self, idx, player, dt: float):
         """AI defends against ball carrier"""
         if self.ball_holder is not None:
             ball_carrier = self.get_player(self.ball_holder)
             # Move towards ball carrier to block
-            self.ai_move_towards(player, ball_carrier["x"], ball_carrier["y"], speed=0.5)
+            self.ai_move_towards(player, ball_carrier["x"], ball_carrier["y"], dt, speed_per_s=self.ai_move_speed)
             
             # Attempt steal if very close
             dist = math.sqrt((player["x"] - ball_carrier["x"])**2 + (player["y"] - ball_carrier["y"])**2)
-            if dist < 1.5 and random.random() < 0.08:
+            # Steals are less likely if the carrier is moving (dribbling) and more likely if stationary.
+            carrier_idx = self.ball_holder
+            carrier_moving = self._moving.get(carrier_idx, False)
+            steal_p = 0.05 if carrier_moving else 0.09
+            if dist < 1.5 and random.random() < steal_p:
                 # Steal!
                 self.ball_holder = idx
+                play_beep(320, 25)
     
-    def ai_move_towards(self, player, target_x, target_y, speed=0.55):
+    def ai_move_towards(self, player, target_x, target_y, dt: float, speed_per_s: float = 3.2):
         """Move player towards target"""
         dx = target_x - player["x"]
         dy = target_y - player["y"]
         dist = math.sqrt(dx**2 + dy**2)
         
         if dist > 0.5:
-            player["x"] += (dx / dist) * speed
-            player["y"] += (dy / dist) * speed
+            step = max(0.0, float(dt)) * float(speed_per_s)
+            player["x"] += (dx / dist) * step
+            player["y"] += (dy / dist) * step
             
             # Keep in bounds
             player["x"] = max(1, min(self.court_width - 2, player["x"]))
@@ -253,11 +302,16 @@ class Basketball(Game):
         """Player shoots at hoop"""
         player = self.get_player(player_idx)
         self.ball_arc_start = (player["x"], player["y"])
+        # Apply aim offset (controlled player only)
+        if player_idx == self.controlled_player:
+            target_y = max(1, min(self.court_height - 2, target_y + int(self.aim_offset_y)))
         self.ball_arc_end = (target_x, target_y)
         self.ball_arc_progress = 0
+        self.ball_arc_duration = self.shot_arc_duration
         self.ball_in_air = True
         self.ball_holder = None
         self.shooter = player_idx
+        play_beep(740, 30)
     
     def pass_ball(self, from_idx, to_idx):
         """Pass ball between players"""
@@ -267,10 +321,36 @@ class Basketball(Game):
         self.ball_arc_start = (from_player["x"], from_player["y"])
         self.ball_arc_end = (to_player["x"], to_player["y"])
         self.ball_arc_progress = 0
-        self.ball_arc_duration = 0.45  # Slightly slower for readability
+        self.ball_arc_duration = self.pass_arc_duration
         self.ball_in_air = True
         self.ball_holder = None
         self.pass_target = to_idx
+        play_beep(520, 25)
+
+    def _shot_probability(self, shooter_idx: int, target_x: int, target_y: int) -> float:
+        """Compute shot success probability based on distance + defense pressure."""
+        shooter = self.get_player(shooter_idx)
+        dist = math.sqrt((shooter["x"] - target_x) ** 2 + (shooter["y"] - target_y) ** 2)
+
+        # Defense pressure based on closest opponent to target point.
+        closest = 999.0
+        for _, opp in self.get_all_players():
+            if opp["team"] == shooter["team"]:
+                continue
+            d = math.sqrt((opp["x"] - target_x) ** 2 + (opp["y"] - target_y) ** 2)
+            closest = min(closest, d)
+
+        pressure = 0.0
+        if closest < 2.0:
+            pressure = 0.28
+        elif closest < 3.0:
+            pressure = 0.14
+
+        moving_penalty = 0.08 if self._moving.get(shooter_idx, False) else 0.0
+
+        # Base probability decreases with distance.
+        p = 0.88 - 0.06 * dist - pressure - moving_penalty
+        return max(0.08, min(0.92, p))
     
     def check_shot(self):
         """Check if shot scores"""
@@ -286,10 +366,12 @@ class Basketball(Game):
         target_hoop_x = self.right_hoop_x if shooter["team"] == 1 else self.left_hoop_x
         target_hoop_y = self.right_hoop_y if shooter["team"] == 1 else self.left_hoop_y
         
-        dist = math.sqrt((self.ball_x - target_hoop_x)**2 + (self.ball_y - target_hoop_y)**2)
-        
-        # Score if close enough (with some randomness)
-        if dist < 2.5 and random.random() < 0.7:
+        # Hoop has 3 segments (y-1,y,y+1)
+        on_rim = int(round(self.ball_x)) == int(target_hoop_x) and abs(int(round(self.ball_y)) - int(target_hoop_y)) <= 1
+        p = self._shot_probability(self.shooter, int(target_hoop_x), int(round(self.ball_y)))
+
+        # Score with probability p if shot landed on rim.
+        if on_rim and random.random() < p:
             if shooter["team"] == 1:
                 self.team1_score += 2
                 self.scoring_team = 1
@@ -298,6 +380,7 @@ class Basketball(Game):
                 self.scoring_team = 2
             
             self.score_animation_timer = 1.0
+            play_beep(880, 80)
             
             # Check for win
             if self.team1_score >= self.max_score:
@@ -309,6 +392,7 @@ class Basketball(Game):
         else:
             # Missed shot - ball is loose
             self.ball_holder = None
+            play_beep(260, 40)
     
     def render(self):
         """Render the basketball game"""
@@ -355,9 +439,31 @@ class Basketball(Game):
             if 0 <= bx < self.court_width and 0 <= by < self.court_height:
                 self.grid.set_pixel(bx, by, ball_color)
         
-        # Draw scores
-        self.grid.render_number(self.team1_score, 2, 1, (255, 255, 255), scale=1)
-        self.grid.render_number(self.team2_score, 14, 1, (255, 255, 255), scale=1)
+        # Draw scoreboard (cleaner HUD: icons + pips)
+        s1 = self._sprite_store.get("hud_bball_t1")
+        if s1 is not None:
+            draw_sprite(self.grid, s1, 0, 0)
+        else:
+            self.grid.set_pixel(0, 0, (200, 30, 45))
+
+        s2 = self._sprite_store.get("hud_bball_t2")
+        if s2 is not None:
+            draw_sprite(self.grid, s2, self.court_width - 3, 0)
+        else:
+            self.grid.set_pixel(self.court_width - 1, 0, (220, 220, 220))
+
+        # Pips for score (2 points per pip)
+        pips1 = max(0, min(6, self.team1_score // 2))
+        pips2 = max(0, min(6, self.team2_score // 2))
+        for i in range(pips1):
+            self.grid.set_pixel(1 + i, 1, (255, 220, 80))
+        for i in range(pips2):
+            self.grid.set_pixel(self.court_width - 2 - i, 1, (255, 220, 80))
+
+        # Aim indicator (controlled player only while holding ball)
+        if self.ball_holder == self.controlled_player and not self.ball_in_air:
+            aim_y = max(1, min(self.court_height - 2, self.right_hoop_y + int(self.aim_offset_y)))
+            self.grid.set_pixel(self.right_hoop_x - 1, aim_y, (0, 255, 255))
     
     def _render_score_animation(self):
         """Render scoring animation"""
@@ -404,6 +510,15 @@ class Basketball(Game):
                     target_x = self.right_hoop_x if player["team"] == 1 else self.left_hoop_x
                     target_y = self.right_hoop_y if player["team"] == 1 else self.left_hoop_y
                     self.shoot(self.controlled_player, target_x, target_y)
+
+                # Aim up/down (controlled player only)
+                if self.ball_holder == self.controlled_player:
+                    if event.key == pygame.K_UP:
+                        self.aim_offset_y = max(-1, self.aim_offset_y - 1)
+                        play_beep(520, 15)
+                    elif event.key == pygame.K_DOWN:
+                        self.aim_offset_y = min(1, self.aim_offset_y + 1)
+                        play_beep(520, 15)
                 
                 # Pass
                 if event.key == pygame.K_p and self.ball_holder == self.controlled_player:
@@ -420,13 +535,18 @@ class Basketball(Game):
         # Player movement (continuous)
         if self.game_started and not self.game_over:
             player = self.get_player(self.controlled_player)
-            move_speed = 0.6
+            # Use dt-based pacing; fall back to 60fps if dt not set yet.
+            dt = getattr(self, "_dt_last", 1 / 60)
+            move = self.player_move_speed * dt
             
             if keys[pygame.K_w]:
-                player["y"] = max(1, player["y"] - move_speed)
+                player["y"] = max(1, player["y"] - move)
             if keys[pygame.K_s]:
-                player["y"] = min(self.court_height - 2, player["y"] + move_speed)
+                player["y"] = min(self.court_height - 2, player["y"] + move)
             if keys[pygame.K_a]:
-                player["x"] = max(1, player["x"] - move_speed)
+                player["x"] = max(1, player["x"] - move)
             if keys[pygame.K_d]:
-                player["x"] = min(self.court_width - 2, player["x"] + move_speed)
+                player["x"] = min(self.court_width - 2, player["x"] + move)
+
+        # dt is stored in update(); keep a sane fallback if handle_input is called first.
+        self._dt_last = getattr(self, "_dt_last", 1 / 60)
