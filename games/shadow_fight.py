@@ -44,6 +44,7 @@ class ShadowFight(Game):
         self.p1_hp = 10
         self.p1_attack_cd = 0.0
         self.p1_attack_timer = 0.0
+        self.p1_crouch_timer = 0.0
 
         self.ai_x = 13.0
         self.ai_y = float(self.ground_y)
@@ -51,6 +52,7 @@ class ShadowFight(Game):
         self.ai_hp = 10
         self.ai_attack_cd = 0.0
         self.ai_attack_timer = 0.0
+        self.ai_crouch_timer = 0.0
 
         self._t = 0.0
 
@@ -63,6 +65,8 @@ class ShadowFight(Game):
         self.ai_attack_cd = max(0.0, self.ai_attack_cd - dt)
         self.p1_attack_timer = max(0.0, self.p1_attack_timer - dt)
         self.ai_attack_timer = max(0.0, self.ai_attack_timer - dt)
+        self.p1_crouch_timer = max(0.0, self.p1_crouch_timer - dt)
+        self.ai_crouch_timer = max(0.0, self.ai_crouch_timer - dt)
 
         # Physics
         self._apply_physics(dt)
@@ -110,6 +114,16 @@ class ShadowFight(Game):
                 self.ai_attack_cd = 0.6
                 play_beep(620, 25)
 
+        # Simple dodge: sometimes crouch when close and player is punching
+        if (
+            self.ai_crouch_timer <= 0
+            and self.p1_attack_timer > 0
+            and abs(self.ai_x - self.p1_x) <= 2.2
+            and random.random() < 0.25
+        ):
+            self.ai_crouch_timer = 0.28
+            play_beep(420, 15)
+
         # Small random jumps
         if self.ai_y >= self.ground_y and random.random() < 0.01:
             self.ai_vy = self.jump_v
@@ -120,16 +134,22 @@ class ShadowFight(Game):
         # P1 punch range
         if self.p1_attack_timer > 0:
             if abs(self.ai_x - self.p1_x) <= 2.0 and abs(self.ai_y - self.p1_y) <= 2.5:
-                self.ai_hp -= 1
+                if self.ai_crouch_timer <= 0:
+                    self.ai_hp -= 1
+                    play_beep(880, 20)
+                else:
+                    play_beep(320, 12)
                 self.p1_attack_timer = 0.0
-                play_beep(880, 20)
 
         # AI punch range
         if self.ai_attack_timer > 0:
             if abs(self.ai_x - self.p1_x) <= 2.0 and abs(self.ai_y - self.p1_y) <= 2.5:
-                self.p1_hp -= 1
+                if self.p1_crouch_timer <= 0:
+                    self.p1_hp -= 1
+                    play_beep(320, 20)
+                else:
+                    play_beep(520, 12)
                 self.ai_attack_timer = 0.0
-                play_beep(320, 20)
 
     def render(self):
         # Arena background
@@ -148,6 +168,7 @@ class ShadowFight(Game):
             p1_color,
             facing=1,
             punching=self.p1_attack_timer > 0,
+            crouching=self.p1_crouch_timer > 0,
         )
         self._draw_stick(
             int(round(self.ai_x)),
@@ -155,6 +176,7 @@ class ShadowFight(Game):
             ai_color,
             facing=-1,
             punching=self.ai_attack_timer > 0,
+            crouching=self.ai_crouch_timer > 0,
         )
 
         # HP bars
@@ -175,8 +197,28 @@ class ShadowFight(Game):
         for i in range(hp):
             self.grid.set_pixel(x + i, y + 2, color)
 
-    def _draw_stick(self, x: int, y: int, color: tuple[int, int, int], facing: int, punching: bool):
+    def _draw_stick(
+        self,
+        x: int,
+        y: int,
+        color: tuple[int, int, int],
+        facing: int,
+        punching: bool,
+        crouching: bool,
+    ):
         """Draw a tiny stick figure anchored at feet (x,y)."""
+        if crouching:
+            # Crouched posture: lower head/body, arms low.
+            self.grid.set_pixel(x, y - 3, color)  # head
+            self.grid.set_pixel(x, y - 2, color)
+            self.grid.set_pixel(x, y - 1, color)
+            self.grid.set_pixel(x - 1, y, color)
+            self.grid.set_pixel(x + 1, y, color)
+            self.grid.set_pixel(x + 1 * facing, y - 1, color)
+            if punching:
+                self.grid.set_pixel(x + 2 * facing, y - 1, color)
+            return
+
         # Head
         self.grid.set_pixel(x, y - 5, color)
         # Body
@@ -222,6 +264,11 @@ class ShadowFight(Game):
                     self.p1_attack_timer = 0.18
                     self.p1_attack_cd = 0.5
                     play_beep(740, 20)
+            elif event.key == pygame.K_s:
+                # Crouch/dodge
+                if self.p1_crouch_timer <= 0:
+                    self.p1_crouch_timer = 0.35
+                    play_beep(420, 15)
 
         # Continuous movement
         if not self.game_over:

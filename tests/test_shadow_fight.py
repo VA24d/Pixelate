@@ -54,6 +54,24 @@ class TestShadowFight(unittest.TestCase):
         self.assertTrue(game.game_over)
         self.assertEqual(game.winner, "YOU")
 
+    def test_crouch_dodges_ai_punch(self):
+        g = _StubGrid()
+        game = ShadowFight(g)
+
+        # Put fighters close enough to hit.
+        game.p1_x = 8.0
+        game.ai_x = 9.0
+        game.p1_y = float(game.ground_y)
+        game.ai_y = float(game.ground_y)
+
+        hp0 = game.p1_hp
+        game.p1_crouch_timer = 0.3
+        game.ai_attack_timer = 0.18
+        game._resolve_hits()
+
+        self.assertEqual(game.p1_hp, hp0)
+        self.assertEqual(game.ai_attack_timer, 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()

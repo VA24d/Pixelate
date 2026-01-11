@@ -346,7 +346,7 @@ class LEDGameConsole:
             elif isinstance(self.current_screen, PetGame):
                 help_texts.append("Pets: LR Switch | A Feed | S Play | D Rest | ESC Menu")
             elif isinstance(self.current_screen, ShadowFight):
-                help_texts.append("Fight: A/D Move | W Jump | J Punch | ESC Menu")
+                help_texts.append("Fight: A/D Move | W Jump | J Punch | S Crouch/Dodge | ESC Menu")
             elif isinstance(self.current_screen, AsphaltRace):
                 help_texts.append("Race: LR Steer | UP Gas | DOWN Brake | E Edit HUD | ESC Menu")
             else:
