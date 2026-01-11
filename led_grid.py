@@ -183,8 +183,24 @@ class LEDGrid:
         if color != (0, 0, 0):
             pygame.draw.rect(surface, color, (x + self.led_gap, y + self.led_gap, size, size))
     
-    def render_text(self, text: str, x: int, y: int, color: Tuple[int, int, int], scale: int = 1):
-        """Render text on the LED grid using a simple 3x5 font"""
+    def render_text(
+        self,
+        text: str,
+        x: int,
+        y: int,
+        color: Tuple[int, int, int],
+        scale: int = 1,
+        spacing: int = 1,
+    ):
+        """Render text on the LED grid using a simple 3x5 font.
+
+        Args:
+            text: Text to render (A-Z, 0-9, space, hyphen).
+            x,y: Top-left position.
+            color: RGB tuple.
+            scale: Pixel scale factor.
+            spacing: Extra spacing between characters (in *unscaled* pixels).
+        """
         font_3x5: Dict[str, List[List[int]]] = {
             '0': [[1,1,1],[1,0,1],[1,0,1],[1,0,1],[1,1,1]],
             '1': [[0,1,0],[1,1,0],[0,1,0],[0,1,0],[1,1,1]],
@@ -243,7 +259,7 @@ class LEDGrid:
                             for sy in range(scale):
                                 for sx in range(scale):
                                     self.set_pixel(cursor_x + dx * scale + sx, y + dy * scale + sy, color)
-                cursor_x += (3 * scale) + scale  # Character width + spacing
+                cursor_x += (3 * scale) + (max(0, int(spacing)) * scale)  # Character width + spacing
 
     def set_font_overrides(self, overrides: Dict[str, List[List[int]]] | None) -> None:
         """Set per-character 3x5 font overrides used by render_text()."""

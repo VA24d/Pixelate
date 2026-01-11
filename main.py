@@ -38,6 +38,8 @@ from games.vacation import VacationGallery
 from games.shadow_fight import ShadowFight
 from games.asphalt_race import AsphaltRace
 from games.overlay_editor import OverlayEditor
+from games.font_editor import FontEditor
+from games.font_store import get_font_store
 
 
 class LEDGameConsole:
@@ -76,6 +78,12 @@ class LEDGameConsole:
         self._resume_state = None
         self._resume_screen = None
         self._resume_menu_index = 0
+
+        # Load persisted font overrides (if any)
+        try:
+            self.grid.set_font_overrides(get_font_store().get_overrides())
+        except Exception:
+            pass
         
         # Start with boot screen
         self.start_boot_screen()
@@ -144,6 +152,33 @@ class LEDGameConsole:
 
         self._resume_state = None
         self._resume_screen = None
+
+    def _start_font_editor(self, initial_char: str = "A"):
+        self._resume_state = self.manager.state
+        self._resume_screen = self.current_screen
+        if isinstance(self.current_screen, CarouselMenu):
+            self._resume_menu_index = int(self.current_screen.selected_index)
+        self.current_screen = FontEditor(self.grid, initial_char=initial_char)
+        self.manager.set_state(GameState.FONT_EDITOR)
+        self.show_help_overlay = True
+
+    def _resume_from_font_editor(self):
+        # Reload font overrides into the grid.
+        try:
+            self.grid.set_font_overrides(get_font_store().get_overrides())
+        except Exception:
+            self.grid.set_font_overrides(None)
+
+        # Same resume logic as sprite editor.
+        if self._resume_state == GameState.PLAYING and self._resume_screen is not None:
+            self.current_screen = self._resume_screen
+            self.manager.set_state(GameState.PLAYING)
+            self.show_help_overlay = False
+        else:
+            self.start_menu(self._resume_menu_index)
+
+        self._resume_state = None
+        self._resume_screen = None
     
     def handle_global_input(self, keys, events):
         """Handle global input (LED grid adjustments and quit)"""
@@ -172,6 +207,16 @@ class LEDGameConsole:
                             self._start_editor(sprite_name="hud_race_score", w=3, h=5)
                         else:
                             self._start_editor(sprite_name="hud_race_dist", w=3, h=5)
+
+                # Font editor (glyphs): press F
+                if event.key == pygame.K_f:
+                    # Seed initial char from menu selection when possible.
+                    initial_char = "A"
+                    if self.manager.state == GameState.MENU and isinstance(self.current_screen, CarouselMenu):
+                        name = self.current_screen.games[self.current_screen.selected_index]["name"]
+                        if name:
+                            initial_char = str(name)[0]
+                    self._start_font_editor(initial_char=initial_char)
                 
                 # LED adjustments
                 if event.key == pygame.K_EQUALS or event.key == pygame.K_PLUS:
@@ -235,6 +280,8 @@ class LEDGameConsole:
                         self.start_game(self.manager.selected_game_index)
                     elif self.manager.state == GameState.EDITOR:
                         self._resume_from_editor()
+                    elif self.manager.state == GameState.FONT_EDITOR:
+                        self._resume_from_font_editor()
                     elif self.manager.state == GameState.PLAYING:
                         # Return to menu
                         self.start_menu()
@@ -269,7 +316,9 @@ class LEDGameConsole:
         ]
         
         if self.manager.state == GameState.MENU:
-            help_texts.append("Menu: LEFT/RIGHT Navigate | SPACE/ENTER Select | M Toggle Transition | E Edit Logo")
+            help_texts.append(
+                "Menu: LEFT/RIGHT Navigate | SPACE/ENTER Select | M Toggle Transition | E Edit Logo | F Edit Font"
+            )
         elif self.manager.state == GameState.PLAYING:
             # Contextual hints based on current game
             if isinstance(self.current_screen, Pong):
@@ -288,6 +337,9 @@ class LEDGameConsole:
                 help_texts.append("Race: LR Steer | UP Gas | DOWN Brake | E Edit HUD | ESC Menu")
             else:
                 help_texts.append("Game: ESC Menu")
+
+        elif self.manager.state == GameState.FONT_EDITOR:
+            help_texts.append("Font: NP Char | Arrows Move | Click/Space Toggle | S Save | R Reset | ESC Back")
         
         y_offset = self.window_height - 60
         for text in help_texts:

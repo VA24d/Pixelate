@@ -23,3 +23,6 @@ htmlcov/
 
 # User-editable sprite presets
 data/sprites.json
+
+# User-editable font glyph overrides
+data/font_overrides.json

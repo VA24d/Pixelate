@@ -3,9 +3,11 @@ Carousel Menu - Game selection with pixel art logos
 """
 import pygame
 import math
+
 from games.base_game import Game, hsv_to_rgb
 from games.sound import play_beep
 from games.sprite_store import get_sprite_store, draw_sprite
+from games.text_layout import TITLE, HINT, centered_x
 
 
 class CarouselMenu(Game):
@@ -66,7 +68,7 @@ class CarouselMenu(Game):
             int(180 + 40 * pulse),
             int(255),
         )
-        self.grid.render_text("GAMES", 2, 0, title_color, scale=1)
+        self.grid.render_text("GAMES", centered_x(TITLE, chars=5), TITLE.y, title_color, scale=1)
         
         # Calculate which games to show
         if self.smooth_transition:
@@ -101,8 +103,13 @@ class CarouselMenu(Game):
 
         # Bottom hint
         hint = "LR SEL"
-        hint_x = (self.grid.grid_size - (len(hint) * 4)) // 2
-        self.grid.render_text(hint, hint_x, 18 - 5, (120, 120, 120), scale=1)
+        self.grid.render_text(
+            hint,
+            centered_x(HINT, chars=len(hint)),
+            HINT.y,
+            (120, 120, 120),
+            scale=1,
+        )
     
     def _render_game_card(self, game_index: int, offset: float):
         """Render the main game card in center"""

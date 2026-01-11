@@ -43,6 +43,7 @@ class GameState:
     MENU = "menu"
     PLAYING = "playing"
     EDITOR = "editor"
+    FONT_EDITOR = "font_editor"
 
 
 class GameManager:
