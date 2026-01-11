@@ -36,6 +36,7 @@ from games.pet_game import PetGame
 from games import sound
 from games.vacation import VacationGallery
 from games.shadow_fight import ShadowFight
+from games.asphalt_race import AsphaltRace
 
 
 class LEDGameConsole:
@@ -96,6 +97,8 @@ class LEDGameConsole:
             self.current_screen = VacationGallery(self.grid)
         elif game_index == 6:
             self.current_screen = ShadowFight(self.grid)
+        elif game_index == 7:
+            self.current_screen = AsphaltRace(self.grid)
         
         self.manager.set_state(GameState.PLAYING)
     
@@ -218,6 +221,8 @@ class LEDGameConsole:
                 help_texts.append("Pets: LR Switch | A Feed | S Play | D Rest | ESC Menu")
             elif isinstance(self.current_screen, ShadowFight):
                 help_texts.append("Fight: A/D Move | W Jump | J Punch | ESC Menu")
+            elif isinstance(self.current_screen, AsphaltRace):
+                help_texts.append("Race: LR Steer | UP Gas | DOWN Brake | ESC Menu")
             else:
                 help_texts.append("Game: ESC Menu")
         

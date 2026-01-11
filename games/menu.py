@@ -14,7 +14,7 @@ class CarouselMenu(Game):
         super().__init__(grid)
         self.game_manager = game_manager
         self.selected_index = 0
-        self.num_games = 7
+        self.num_games = 8
 
         # Each card is rendered on the 19x19 grid; we slide cards horizontally by this width.
         self.card_width = self.grid.grid_size
@@ -37,6 +37,7 @@ class CarouselMenu(Game):
             {"name": "PETS", "number": 5},
             {"name": "VACAY", "number": 6},
             {"name": "FIGHT", "number": 7},
+            {"name": "RACE", "number": 8},
         ]
     
     def update(self, dt: float):
@@ -170,6 +171,8 @@ class CarouselMenu(Game):
             self._render_vacay_logo(x, y)
         elif game_index == 6:  # FIGHT
             self._render_fight_logo(x, y)
+        elif game_index == 7:  # RACE
+            self._render_race_logo(x, y)
     
     def _render_pong_logo(self, x: int, y: int):
         """Pixel art logo for Pong - paddles and ball"""
@@ -327,6 +330,28 @@ class CarouselMenu(Game):
         # VS
         self.grid.set_pixel(x + 4, y + 3, mid)
         self.grid.set_pixel(x + 5, y + 3, mid)
+
+    def _render_race_logo(self, x: int, y: int):
+        """Pixel art logo for Race - small road + car."""
+        road = (80, 80, 80)
+        edge = (220, 220, 220)
+        car1 = (60, 200, 255)
+
+        # road taper
+        for dy in range(0, 8):
+            hw = 1 + dy // 2
+            cy = y + dy
+            cx = x + 5
+            for dx in range(-hw, hw + 1):
+                self.grid.set_pixel(cx + dx, cy, road)
+            self.grid.set_pixel(cx - hw, cy, edge)
+            self.grid.set_pixel(cx + hw, cy, edge)
+
+        # car
+        self.grid.set_pixel(x + 4, y + 6, car1)
+        self.grid.set_pixel(x + 5, y + 6, (20, 120, 200))
+        self.grid.set_pixel(x + 4, y + 7, (20, 120, 200))
+        self.grid.set_pixel(x + 5, y + 7, car1)
     
     def handle_input(self, keys, events):
         """Handle carousel navigation"""

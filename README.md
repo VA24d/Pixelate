@@ -6,7 +6,7 @@ A Python application simulating a 19×19 RGB LED grid with a game console interf
 
 - **19×19 RGB LED Grid Simulator** with runtime-adjustable parameters
 - **Boot Screen** with animated LED effects
-- **Carousel Menu** with 7 game options and pixel-art logos
+- **Carousel Menu** with 8 game options and pixel-art logos
 - **Full Pong Game** with:
   - Player vs AI and 2-player modes
   - Multicolored ball trails
@@ -19,6 +19,7 @@ A Python application simulating a 19×19 RGB LED grid with a game console interf
 - **Snake** (full game)
 - **Flappy Bird** (full game)
 - **Shadow Fight (Stick)** (simplified 1v1)
+- **Asphalt Racing** (pseudo-3D endless racer)
 
 ## Installation
 
@@ -66,6 +67,13 @@ python main.py
 - `SPACE` - Restart after game over
 - `ESC` - Return to menu
 
+### Asphalt Racing
+- `LEFT/RIGHT` - Steer
+- `UP` - Accelerate
+- `DOWN` - Brake
+- `SPACE` - Restart after crash
+- `ESC` - Return to menu
+
 ### Pong Game
 - **Mode Selection**: `LEFT/RIGHT` to choose 1P or 2P, `SPACE/ENTER` to start
 - **Player 1 (Left Paddle)**: `W/S`
@@ -111,6 +119,7 @@ Pixelate/
 │   ├── snake.py           # Snake
 │   ├── flappy.py          # Flappy Bird
 │   ├── shadow_fight.py    # Stick figure fighter
+│   ├── asphalt_race.py    # Pseudo-3D racing
 │   └── ...
 ```
 
