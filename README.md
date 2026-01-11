@@ -6,7 +6,7 @@ A Python application simulating a 19×19 RGB LED grid with a game console interf
 
 - **19×19 RGB LED Grid Simulator** with runtime-adjustable parameters
 - **Boot Screen** with animated LED effects
-- **Carousel Menu** with 6 game options and pixel-art logos
+- **Carousel Menu** with 7 game options and pixel-art logos
 - **Full Pong Game** with:
   - Player vs AI and 2-player modes
   - Multicolored ball trails
@@ -16,7 +16,9 @@ A Python application simulating a 19×19 RGB LED grid with a game console interf
 - **Basketball** (2v2)
 - **Pet Game** (Dog/Cat/Dino)
 - **Vacation Gallery** (Beach + Waterfall digital art)
-- **2 Placeholder Games** (Snake, Tetris)
+- **Snake** (full game)
+- **Flappy Bird** (full game)
+- **Shadow Fight (Stick)** (simplified 1v1)
 
 ## Installation
 
@@ -46,6 +48,23 @@ python main.py
 - `SPACE/ENTER` - Select game
 - `M` - Toggle smooth/instant carousel transitions
 - `O` - Toggle sound effects on/off
+
+### Snake
+- Arrow keys - Move
+- `SPACE` - Restart after game over
+- `ESC` - Return to menu
+
+### Flappy Bird
+- `SPACE` - Flap
+- `R` - Restart after game over
+- `ESC` - Return to menu
+
+### Shadow Fight (Stick)
+- `A/D` - Move
+- `W` - Jump
+- `J` - Punch
+- `SPACE` - Restart after game over
+- `ESC` - Return to menu
 
 ### Pong Game
 - **Mode Selection**: `LEFT/RIGHT` to choose 1P or 2P, `SPACE/ENTER` to start
@@ -89,6 +108,9 @@ Pixelate/
 │   ├── pet_game.py        # Pet Game (Dog/Cat/Dino)
 │   ├── vacation.py        # Vacation Gallery (Beach + Waterfall)
 │   ├── sound.py           # Optional sound helper
+│   ├── snake.py           # Snake
+│   ├── flappy.py          # Flappy Bird
+│   ├── shadow_fight.py    # Stick figure fighter
 │   └── placeholder_games.py # Snake, Tetris, Space Invaders placeholders
 ```
 

@@ -30,10 +30,12 @@ from games.boot_screen import BootScreen
 from games.menu import CarouselMenu
 from games.pong import Pong
 from games.basketball import Basketball
-from games.placeholder_games import SnakeGame, TetrisGame
+from games.snake import Snake
+from games.flappy import Flappy
 from games.pet_game import PetGame
 from games import sound
 from games.vacation import VacationGallery
+from games.shadow_fight import ShadowFight
 
 
 class LEDGameConsole:
@@ -83,15 +85,17 @@ class LEDGameConsole:
         if game_index == 0:
             self.current_screen = Pong(self.grid)
         elif game_index == 1:
-            self.current_screen = SnakeGame(self.grid)
+            self.current_screen = Snake(self.grid)
         elif game_index == 2:
-            self.current_screen = TetrisGame(self.grid)
+            self.current_screen = Flappy(self.grid)
         elif game_index == 3:
             self.current_screen = Basketball(self.grid)
         elif game_index == 4:
             self.current_screen = PetGame(self.grid)
         elif game_index == 5:
             self.current_screen = VacationGallery(self.grid)
+        elif game_index == 6:
+            self.current_screen = ShadowFight(self.grid)
         
         self.manager.set_state(GameState.PLAYING)
     
@@ -204,10 +208,16 @@ class LEDGameConsole:
             # Contextual hints based on current game
             if isinstance(self.current_screen, Pong):
                 help_texts.append("Pong: W/S | (2P: UP/DOWN) | SPACE Start | ESC Menu")
+            elif isinstance(self.current_screen, Snake):
+                help_texts.append("Snake: ARROWS Move | ESC Menu")
+            elif isinstance(self.current_screen, Flappy):
+                help_texts.append("Flappy: SPACE Flap | R Restart | ESC Menu")
             elif isinstance(self.current_screen, Basketball):
                 help_texts.append("Bball: WASD Move | SPACE Shoot | P Pass | ESC Menu")
             elif isinstance(self.current_screen, PetGame):
                 help_texts.append("Pets: LR Switch | A Feed | S Play | D Rest | ESC Menu")
+            elif isinstance(self.current_screen, ShadowFight):
+                help_texts.append("Fight: A/D Move | W Jump | J Punch | ESC Menu")
             else:
                 help_texts.append("Game: ESC Menu")
         

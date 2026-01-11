@@ -14,7 +14,7 @@ class CarouselMenu(Game):
         super().__init__(grid)
         self.game_manager = game_manager
         self.selected_index = 0
-        self.num_games = 6
+        self.num_games = 7
 
         # Each card is rendered on the 19x19 grid; we slide cards horizontally by this width.
         self.card_width = self.grid.grid_size
@@ -32,10 +32,11 @@ class CarouselMenu(Game):
         self.games = [
             {"name": "PONG", "number": 1},
             {"name": "SNAKE", "number": 2},
-            {"name": "TETRIS", "number": 3},
+            {"name": "FLAP", "number": 3},
             {"name": "BBALL", "number": 4},
             {"name": "PETS", "number": 5},
             {"name": "VACAY", "number": 6},
+            {"name": "FIGHT", "number": 7},
         ]
     
     def update(self, dt: float):
@@ -159,14 +160,16 @@ class CarouselMenu(Game):
             self._render_pong_logo(x, y)
         elif game_index == 1:  # SNAKE
             self._render_snake_logo(x, y)
-        elif game_index == 2:  # TETRIS
-            self._render_tetris_logo(x, y)
+        elif game_index == 2:  # FLAPPY
+            self._render_flappy_logo(x, y)
         elif game_index == 3:  # BBALL
             self._render_basketball_logo(x, y)
         elif game_index == 4:  # PETS
             self._render_pet_logo(x, y)
         elif game_index == 5:  # VACAY
             self._render_vacay_logo(x, y)
+        elif game_index == 6:  # FIGHT
+            self._render_fight_logo(x, y)
     
     def _render_pong_logo(self, x: int, y: int):
         """Pixel art logo for Pong - paddles and ball"""
@@ -207,27 +210,23 @@ class CarouselMenu(Game):
             color = green if i % 2 == 0 else lime
             self.grid.set_pixel(x + dx, y + dy, color)
     
-    def _render_tetris_logo(self, x: int, y: int):
-        """Pixel art logo for Tetris - T piece"""
-        colors = [
-            (255, 0, 0),    # Red
-            (0, 255, 0),    # Green
-            (0, 0, 255),    # Blue
-            (255, 255, 0)   # Yellow
-        ]
-        
-        # T-piece
-        for i in range(3):
-            self.grid.set_pixel(x + 4 + i, y + 2, colors[0])
-            self.grid.set_pixel(x + 4 + i, y + 3, colors[0])
-        self.grid.set_pixel(x + 5, y + 4, colors[0])
-        self.grid.set_pixel(x + 5, y + 5, colors[0])
-        
-        # L-piece next to it
-        self.grid.set_pixel(x + 7, y + 2, colors[1])
-        self.grid.set_pixel(x + 7, y + 3, colors[1])
-        self.grid.set_pixel(x + 7, y + 4, colors[1])
-        self.grid.set_pixel(x + 8, y + 4, colors[1])
+    def _render_flappy_logo(self, x: int, y: int):
+        """Pixel art logo for Flappy - bird + pipe."""
+        bird = (255, 230, 60)
+        pipe = (0, 200, 80)
+
+        # Pipe column
+        for dy in range(0, 8):
+            if dy in (3, 4):
+                continue
+            self.grid.set_pixel(x + 8, y + dy, pipe)
+            self.grid.set_pixel(x + 9, y + dy, (0, 150, 60))
+
+        # Bird
+        self.grid.set_pixel(x + 3, y + 3, bird)
+        self.grid.set_pixel(x + 3, y + 4, bird)
+        self.grid.set_pixel(x + 4, y + 3, (255, 180, 0))
+        self.grid.set_pixel(x + 4, y + 4, (255, 180, 0))
     
     def _render_basketball_logo(self, x: int, y: int):
         """Pixel art logo for Basketball - Miami Heat style"""
@@ -313,6 +312,21 @@ class CarouselMenu(Game):
         # sand
         for dx in range(10):
             self.grid.set_pixel(x + dx, y + 5, sand)
+
+    def _render_fight_logo(self, x: int, y: int):
+        """Pixel art logo for Fight - two stick heads facing each other."""
+        left = (255, 255, 255)
+        right = (30, 30, 30)
+        mid = (255, 255, 0)
+        # heads
+        self.grid.set_pixel(x + 2, y + 2, left)
+        self.grid.set_pixel(x + 7, y + 2, right)
+        # bodies
+        self.grid.set_pixel(x + 2, y + 4, left)
+        self.grid.set_pixel(x + 7, y + 4, right)
+        # VS
+        self.grid.set_pixel(x + 4, y + 3, mid)
+        self.grid.set_pixel(x + 5, y + 3, mid)
     
     def handle_input(self, keys, events):
         """Handle carousel navigation"""
