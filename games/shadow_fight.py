@@ -140,14 +140,26 @@ class ShadowFight(Game):
             self.grid.set_pixel(x, self.ground_y + 1, (40, 40, 40))
 
         # Fighters
-        self._draw_stick(int(round(self.p1_x)), int(round(self.p1_y)), (255, 255, 255), facing=1,
-                         punching=self.p1_attack_timer > 0)
-        self._draw_stick(int(round(self.ai_x)), int(round(self.ai_y)), (0, 0, 0), facing=-1,
-                         punching=self.ai_attack_timer > 0)
+        p1_color = (255, 60, 60)
+        ai_color = (60, 160, 255)
+        self._draw_stick(
+            int(round(self.p1_x)),
+            int(round(self.p1_y)),
+            p1_color,
+            facing=1,
+            punching=self.p1_attack_timer > 0,
+        )
+        self._draw_stick(
+            int(round(self.ai_x)),
+            int(round(self.ai_y)),
+            ai_color,
+            facing=-1,
+            punching=self.ai_attack_timer > 0,
+        )
 
         # HP bars
-        self._draw_hp(1, 0, self.p1_hp, (0, 255, 255))
-        self._draw_hp(10, 0, self.ai_hp, (255, 0, 255))
+        self._draw_hp(1, 0, self.p1_hp, p1_color)
+        self._draw_hp(10, 0, self.ai_hp, ai_color)
 
         self.grid.render_text("VS", 7, 0, (255, 255, 0), scale=1)
 
