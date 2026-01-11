@@ -6,6 +6,10 @@ It includes a boot screen, a carousel menu, and a collection of small games desi
 
 
 - Designed for the ERC Pixelate Event (Sadly didn't support dynamic content)
+- Other components designed include(Look at Bhaskar's repo):
+  - WebCam to stick figure
+  - General purpose video to stick figure animation
+  - Video to Grid functionality with improved contrast
 
 ## Games
 
