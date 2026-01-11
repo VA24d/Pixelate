@@ -22,8 +22,11 @@ Create a Python application simulating a 19×19 RGB LED grid with a game console
 4. **Games**
    - **Pong** (fully implemented): 1P vs AI and 2P modes, multicolored ball trails, scoring animations, sound effects
    - **Basketball** (fully implemented): 2v2 with smart AI (blocking, passing, shooting)
-   - **Snake** (placeholder): Coming soon screen
-   - **Tetris** (placeholder): Coming soon screen
+   - **Snake** (fully implemented): Classic snake
+   - **Flappy Bird** (fully implemented): Endless flappy clone
+   - **Shadow Fight (Stick)** (simplified): 1v1 stick fighter
+   - **Pet Game**: Dog/Cat/Dino tamagotchi-style
+   - **Vacation Gallery**: Beach + waterfall digital art viewer
 
 ## Success Criteria
 - Clean, professional LED grid visualization

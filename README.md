@@ -111,7 +111,7 @@ Pixelate/
 │   ├── snake.py           # Snake
 │   ├── flappy.py          # Flappy Bird
 │   ├── shadow_fight.py    # Stick figure fighter
-│   └── placeholder_games.py # Snake, Tetris, Space Invaders placeholders
+│   └── ...
 ```
 
 ## Tips for Competition

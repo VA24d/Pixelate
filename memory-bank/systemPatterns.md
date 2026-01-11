@@ -10,7 +10,11 @@ main.py (LEDGameConsole)
     ├── menu.py (CarouselMenu) - Game selection
     ├── pong.py (Pong) - Full game implementation
     ├── basketball.py (Basketball) - Full game implementation
-    └── placeholder_games.py (SnakeGame, TetrisGame) - Placeholders
+    ├── snake.py (Snake) - Full game implementation
+    ├── flappy.py (Flappy) - Full game implementation
+    ├── vacation.py (VacationGallery) - Digital art gallery
+    ├── pet_game.py (PetGame) - Pet sim
+    └── shadow_fight.py (ShadowFight) - Stick fighter
 ```
 
 ## Key Design Patterns

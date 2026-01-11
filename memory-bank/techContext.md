@@ -29,7 +29,11 @@ Pixelate/
     ├── menu.py
     ├── pong.py
     ├── basketball.py
-    └── placeholder_games.py
+    ├── snake.py
+    ├── flappy.py
+    ├── pet_game.py
+    ├── vacation.py
+    └── shadow_fight.py
 ```
 
 ### Running the Application
@@ -122,7 +126,7 @@ sound.play()
 ```
 
 ## Known Technical Debt
-- No automated tests
+- Automated unit tests exist (unittest, non-render logic), but coverage is still limited
 - Hard-coded game list in menu and main
 - Some magic numbers (speeds, delays) could be configurable
 - Sound generation has try/catch wrapper (mixer sometimes fails on init)

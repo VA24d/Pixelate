@@ -55,11 +55,12 @@
 - ✅ Game over screen
 - ✅ ESC to return to menu
 
-### Placeholders (Games #2 & #3)
-- ✅ Snake placeholder with pixel-art logo
-- ✅ Tetris placeholder with pixel-art logo
-- ✅ "Coming Soon" messages
-- ✅ ESC to return to menu
+### Additional Games
+- ✅ Snake (full game)
+- ✅ Flappy Bird (full game)
+- ✅ Shadow Fight (Stick) (simplified 1v1)
+- ✅ Pet Game (Dog/Cat/Dino)
+- ✅ Vacation Gallery (Beach + Waterfall)
 
 ## What's Left to Build 🚧
 
@@ -67,7 +68,6 @@
 - ⏳ Sound effects for Basketball
 - ⏳ More sophisticated AI difficulty levels
 - ⏳ High score tracking
-- ⏳ Implement Snake and/or Tetris (if time permits)
 
 ### Testing & Polish
 - ⏳ Full playthrough testing of all features
@@ -92,14 +92,16 @@
 - ~~Flashing border eating screen space~~ ✅ Removed
 - ~~AI paddle not moving in 1P Pong~~ ✅ Fixed (now updates every frame)
 - ~~Paddle movement too jerky~~ ✅ Smoothed to 0.8 pixels/frame
-- ~~Class definition order bug in placeholder_games.py~~ ✅ Fixed
+- ~~Class definition order bug in placeholder games module~~ ✅ Fixed (module since removed)
 
 ### Active
 - None currently identified
 
 ### Deferred
-- No automated test coverage (accepted for competition timeline)
-- Hard-coded game list (acceptable for 4-game demo)
+- Hard-coded game list (acceptable for demo timeline)
+
+### Testing
+- ✅ Basic automated unit tests for game logic (unittest)
 
 ## Evolution of Decisions 📝
 
@@ -110,8 +112,8 @@
 
 ### Game Selection
 1. **Original plan**: Pong, Snake, Tetris, Space Invaders
-2. **Final**: Pong, Snake (placeholder), Tetris (placeholder), Basketball (full)
-3. **Reason**: Basketball 2v2 AI more impressive than Space Invaders
+2. **Final**: Pong, Snake, Flappy Bird, Basketball, Pet Game, Vacation Gallery, Shadow Fight (Stick)
+3. **Reason**: More complete, competition-friendly lineup with both classic and showcase games
 
 ### AI Implementation
 1. **First attempt**: Timed updates with delays (0.15s intervals)

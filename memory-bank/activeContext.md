@@ -9,7 +9,7 @@ Testing and bug fixes before competition (January 16-17, 2026)
 3. Replaced Space Invaders with full Basketball 2v2 game
 4. Improved paddle movement - smoother continuous motion for both players and AI
 5. Added Miami Heat-inspired logo for Basketball game
-6. Fixed class definition order bug in placeholder_games.py
+6. Fixed class definition order bug in placeholder games module (since removed)
 
 ## Active Issues
 - None currently identified
